@@ -1,6 +1,9 @@
+import telegram
 from binance.spot import Spot as Client
 import pandas as pd
 import plotly.graph_objects as go
+import telegram_send
+import os
 
 
 def get_sma(prices, rate):
@@ -14,6 +17,18 @@ def get_bollinger_bands(prices, rate=20):
     bollinger_down = sma - std * 2  # Calculate bottom band
     return bollinger_up, bollinger_down
 
+
+def send_message_in_telegram(message):
+    telegram_send.send(messages=[message])
+    telegram_send.send_photo
+
+
+TOKEN = '5076624416:AAF_W7R4Ag_PgE73oUTfmP-6CqynL9fnaDo'
+
+BASE_URL = 'https://api.telegram.org/bot' + TOKEN + '/'
+CHAT_ID = '718286932'
+
+bot = telegram.Bot(token=TOKEN)
 
 base_url = 'https://api.binance.com'
 
@@ -60,9 +75,14 @@ close_today = historical_prices_df.iloc[-1, 4]
 higher = max(open_today, high_today, low_today, close_today)
 lower = min(open_today, high_today, low_today, close_today)
 
-if float(list(bollinger_up)[-1])*0.9 <= float(higher):
+if float(list(bollinger_up)[-1]) * 0.9 <= float(higher):
     print('VENDE')
 
-if float(list(bollinger_down)[-1]) <= float(lower)*1.1:
+if float(list(bollinger_down)[-1]) <= float(lower) * 1.1:
     print('COMPRA')
-
+if not os.path.exists("images"):
+    os.mkdir("images")
+fig.write_image("images/fig1.jpeg")
+bot.send_photo(chat_id=CHAT_ID, photo=open("images/fig1.jpeg", 'rb'))
+bot.send_message(chat_id=CHAT_ID, text="From Telegram Bot")
+os.remove("images/fig1.jpeg")

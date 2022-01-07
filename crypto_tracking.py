@@ -26,7 +26,7 @@ def send_message_in_telegram(message):
 TOKEN = '5076624416:AAF_W7R4Ag_PgE73oUTfmP-6CqynL9fnaDo'
 
 BASE_URL = 'https://api.telegram.org/bot' + TOKEN + '/'
-CHAT_ID = '718286932'
+CHAT_ID = '## YOUR TELEGRAM ID ##'
 
 bot = telegram.Bot(token=TOKEN)
 

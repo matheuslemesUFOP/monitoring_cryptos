@@ -8,7 +8,7 @@ import os
 
 class CryptoTracking:
     def __init__(self, chat_id: str, coin_to_monitoring: List[str]):
-        self.__TOKEN = 'BINANCE_TOKEN'
+        self.__TOKEN = '5076624416:AAF_W7R4Ag_PgE73oUTfmP-6CqynL9fnaDo'
         self.__CHAT_ID = chat_id
         self.__IMAGE_PATH = "images/fig1.jpeg"
         self.__coin_to_monitoring = coin_to_monitoring
@@ -38,13 +38,7 @@ class CryptoTracking:
 
     def crypto_tracking(self):
         for coin in self.__coin_to_monitoring:
-            historical_prices = Client(self.base_url).klines(symbol=coin, interval='1d', limit=70)
-            columns = ['time', 'open', 'high', 'low', 'close', 'volume', 'close_time', 'quote_asset_volume',
-                       'number_of_trades', 'taker_buy_base', 'taker_buy_quote', 'ignore']
-
-            historical_prices_df = pd.DataFrame(historical_prices, columns=columns)
-            historical_prices_df['time'] = pd.to_datetime(historical_prices_df['time'], utc=True, unit='ms')
-            historical_prices_df = historical_prices_df.iloc[:, range(5)]
+            historical_prices_df = self.get_coin_price_history(coin)
 
             fig = go.Figure(data=[go.Candlestick(
                 showlegend=False,
@@ -119,8 +113,17 @@ class CryptoTracking:
                           f'\nBollinger Inferior: {round(down_bollinger, 2)}'
                 self.send_message_in_telegram(message=message, send_image=True)
 
+    def get_coin_price_history(self, coin):
+        historical_prices = Client(self.base_url).klines(symbol=coin, interval='1d', limit=70)
+        columns = ['time', 'open', 'high', 'low', 'close', 'volume', 'close_time', 'quote_asset_volume',
+                   'number_of_trades', 'taker_buy_base', 'taker_buy_quote', 'ignore']
+        historical_prices_df = pd.DataFrame(historical_prices, columns=columns)
+        historical_prices_df['time'] = pd.to_datetime(historical_prices_df['time'], utc=True, unit='ms')
+        historical_prices_df = historical_prices_df.iloc[:, range(5)]
+        return historical_prices_df
+
 
 if __name__ == '__main__':
-    chat_id = 'YOUR TELEGRAM ID'
+    chat_id = '718286932'
     coin_to_monitoring = ['ETHUSDT', 'RVNUSDT', 'BNBUSDT']
     CryptoTracking(chat_id, coin_to_monitoring)

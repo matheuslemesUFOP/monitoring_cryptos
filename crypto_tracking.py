@@ -8,7 +8,7 @@ import os
 
 class CryptoTracking:
     def __init__(self, chat_id: str, coin_to_monitoring: List[str]):
-        self.__TOKEN = '5076624416:AAF_W7R4Ag_PgE73oUTfmP-6CqynL9fnaDo'
+        self.__TOKEN = 'BINANCE_TOKEN'
         self.__CHAT_ID = chat_id
         self.__IMAGE_PATH = "images/fig1.jpeg"
         self.__coin_to_monitoring = coin_to_monitoring
@@ -17,7 +17,8 @@ class CryptoTracking:
         self.base_url_test = 'https://testnet.binance.vision'
         self.crypto_tracking()
 
-    def get_sma(self, prices, rate):
+    @staticmethod
+    def get_sma(prices, rate):
         return prices.rolling(rate).mean()
 
     def get_bollinger_bands(self, prices, rate=5):
@@ -91,25 +92,31 @@ class CryptoTracking:
             up_bollinger = float(list(bollinger_up)[-1])
             down_bollinger = float(list(bollinger_down)[-1])
             if down_bollinger <= float(lower) * 1.05:
+                if not os.path.exists("images"):
+                    os.mkdir("images")
                 fig.write_image(self.__IMAGE_PATH)
                 message = f'Confira a possível oportunidade de COMPRA para a moeda: {coin}' \
-                          f'\nPreço Atual: {round(float(close_today),2)}$' \
-                          f'\nBollinger Superior: {round(up_bollinger,2)}' \
-                          f'\nBollinger Inferior: {round(down_bollinger,2)}'
+                          f'\nPreço Atual: {round(float(close_today), 2)}$' \
+                          f'\nBollinger Superior: {round(up_bollinger, 2)}' \
+                          f'\nBollinger Inferior: {round(down_bollinger, 2)}'
                 self.send_message_in_telegram(message=message, send_image=True)
 
             elif up_bollinger * 0.98 <= float(higher):
+                if not os.path.exists("images"):
+                    os.mkdir("images")
                 fig.write_image(self.__IMAGE_PATH)
                 message = f'Confira a possível oportunidade de VENDA para a moeda: {coin}\n' \
-                          f'\nPreço Atual: {round(close_today,2)}$' \
-                          f'\nBollinger Superior: {round(up_bollinger,2)}' \
-                          f'\nBollinger Inferior: {round(down_bollinger,2)}'
+                          f'\nPreço Atual: {round(close_today, 2)}$' \
+                          f'\nBollinger Superior: {round(up_bollinger, 2)}' \
+                          f'\nBollinger Inferior: {round(down_bollinger, 2)}'
                 self.send_message_in_telegram(message=message, send_image=True)
             else:
+                if not os.path.exists("images"):
+                    os.mkdir("images")
                 message = f'Nenhuma oportunidade para a moeda: {coin}' \
-                          f'\nPreço Atual: {round(close_today,2)}$' \
-                          f'\nBollinger Superior: {round(up_bollinger,2)}' \
-                          f'\nBollinger Inferior: {round(down_bollinger,2)}'
+                          f'\nPreço Atual: {round(close_today, 2)}$' \
+                          f'\nBollinger Superior: {round(up_bollinger, 2)}' \
+                          f'\nBollinger Inferior: {round(down_bollinger, 2)}'
                 self.send_message_in_telegram(message=message, send_image=True)
 
 

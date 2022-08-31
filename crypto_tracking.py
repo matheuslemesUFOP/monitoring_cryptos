@@ -55,33 +55,34 @@ class CryptoTracking:
             down_bollinger = float(list(bollinger_down)[-2])
 
             coin_message = f'==================== {coin} ==================== \n'
-            if down_bollinger >= close_price:
-                if not os.path.exists("images"):
-                    os.mkdir("images")
-                fig.write_image(self.__IMAGE_PATH)
-                message = f'Confira a possível oportunidade de COMPRA para a moeda: {coin}' \
-                          f'\nPreço Atual: {round(float(close_price), 2)}$' \
-                          f'\nBollinger Superior: {round(up_bollinger, 2)}' \
-                          f'\nBollinger Inferior: {round(down_bollinger, 2)}'
+            message = self.evaluate_price_to_send_message(close_price, coin, down_bollinger, up_bollinger)
 
-            elif up_bollinger <= close_price:
-                if not os.path.exists("images"):
-                    os.mkdir("images")
-                fig.write_image(self.__IMAGE_PATH)
-                message = f'Confira a possível oportunidade de VENDA para a moeda: {coin}\n' \
-                          f'\nPreço Atual: {round(close_price, 2)}$' \
-                          f'\nBollinger Superior: {round(up_bollinger, 2)}' \
-                          f'\nBollinger Inferior: {round(down_bollinger, 2)}'
-
-            else:
-                if not os.path.exists("images"):
-                    os.mkdir("images")
-                message = f'Nenhuma oportunidade para a moeda: {coin}' \
-                          f'\nPreço Atual: {round(close_price, 2)}$' \
-                          f'\nBollinger Superior: {round(up_bollinger, 2)}' \
-                          f'\nBollinger Inferior: {round(down_bollinger, 2)}'
-
+            if not os.path.exists("images"):
+                os.mkdir("images")
+            fig.write_image(self.__IMAGE_PATH)
             self.send_message_in_telegram(message=coin_message + message, send_image=True)
+
+    @staticmethod
+    def evaluate_price_to_send_message(close_price, coin, down_bollinger, up_bollinger):
+        if down_bollinger >= close_price:
+            message = f'Confira a possível oportunidade de COMPRA para a moeda: {coin}' \
+                      f'\nPreço Atual: {round(float(close_price), 2)}$' \
+                      f'\nBollinger Superior: {round(up_bollinger, 2)}' \
+                      f'\nBollinger Inferior: {round(down_bollinger, 2)}'
+
+        elif up_bollinger <= close_price:
+            message = f'Confira a possível oportunidade de VENDA para a moeda: {coin}\n' \
+                      f'\nPreço Atual: {round(close_price, 2)}$' \
+                      f'\nBollinger Superior: {round(up_bollinger, 2)}' \
+                      f'\nBollinger Inferior: {round(down_bollinger, 2)}'
+
+        else:
+            message = f'Nenhuma oportunidade para a moeda: {coin}' \
+                      f'\nPreço Atual: {round(close_price, 2)}$' \
+                      f'\nBollinger Superior: {round(up_bollinger, 2)}' \
+                      f'\nBollinger Inferior: {round(down_bollinger, 2)}'
+        return message
+
     @staticmethod
     def plot_bollinger_bands_in_figure(bollinger_down, bollinger_up, fig, historical_prices_df):
         trace_down = go.Scatter(x=historical_prices_df['time'],

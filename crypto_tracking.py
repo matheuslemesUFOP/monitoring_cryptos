@@ -1,4 +1,5 @@
 import json
+from datetime import datetime, timezone
 from typing import List
 import telegram
 from binance.spot import Spot as Client
@@ -6,9 +7,13 @@ import pandas as pd
 import plotly.graph_objects as go
 import os
 
+from logger import set_logger
+from utils import get_sma, get_bollinger_bands
+
 
 class CryptoTracking:
     def __init__(self, coin_to_monitoring: List[str]):
+        self.logger = set_logger()
         self.json_name = 'config_file.json'
         self.__json_info = self.get_json_config_info()
         self.__TOKEN = self.__json_info['binance_token']
@@ -25,18 +30,8 @@ class CryptoTracking:
         j = open(self.json_name)
         return json.load(j)
 
-    @staticmethod
-    def get_sma(prices, rate):
-        return prices.rolling(rate).mean()
-
-    def get_bollinger_bands(self, prices, rate=5):
-        sma = self.get_sma(prices, rate)
-        std = prices.rolling(rate).std()
-        bollinger_up = sma + std * 2  # Calculate top band
-        bollinger_down = sma - std * 2  # Calculate bottom band
-        return bollinger_up, bollinger_down
-
     def send_message_in_telegram(self, message: str, send_image: bool):
+        self.logger.info('Send telegram message')
         self.bot.send_message(chat_id=self.__CHAT_ID, text=message)
         if send_image:
             if not os.path.exists("images"):
@@ -45,12 +40,14 @@ class CryptoTracking:
             os.remove(self.__IMAGE_PATH)
 
     def crypto_tracking(self):
+        self.logger.info('Initialize Crypto tracking ...')
         for coin in self.__coin_to_monitoring:
+            self.logger.info(f'Monitoring {coin}')
             historical_prices_df = self.get_coin_price_history(coin)
 
             fig = self.make_candle_graph_figure(historical_prices_df)
 
-            bollinger_up, bollinger_down = self.get_bollinger_bands(historical_prices_df['close'])
+            bollinger_up, bollinger_down = get_bollinger_bands(historical_prices_df['close'])
 
             self.plot_bollinger_bands_in_figure(bollinger_down, bollinger_up, fig, historical_prices_df)
 
@@ -69,29 +66,25 @@ class CryptoTracking:
             fig.write_image(self.__IMAGE_PATH)
             self.send_message_in_telegram(message=coin_message + message, send_image=True)
 
-    @staticmethod
-    def evaluate_price_to_send_message(close_price, coin, down_bollinger, up_bollinger):
+    def evaluate_price_to_send_message(self, close_price, coin, down_bollinger, up_bollinger):
+        self.logger.info('Evaluate price')
         if down_bollinger >= close_price:
-            message = f'Confira a possível oportunidade de COMPRA para a moeda: {coin}' \
-                      f'\nPreço Atual: {round(float(close_price), 2)}$' \
-                      f'\nBollinger Superior: {round(up_bollinger, 2)}' \
-                      f'\nBollinger Inferior: {round(down_bollinger, 2)}'
+            return f'Confira a possível oportunidade de COMPRA para a moeda: {coin}\nPreço Atual: ' \
+                   f'{round(float(close_price), 2)}$\nBollinger Superior: {round(up_bollinger, 2)}\n' \
+                   f'Bollinger Inferior: {round(down_bollinger, 2)}'
 
         elif up_bollinger <= close_price:
-            message = f'Confira a possível oportunidade de VENDA para a moeda: {coin}\n' \
-                      f'\nPreço Atual: {round(close_price, 2)}$' \
-                      f'\nBollinger Superior: {round(up_bollinger, 2)}' \
-                      f'\nBollinger Inferior: {round(down_bollinger, 2)}'
+            return f'Confira a possível oportunidade de VENDA para a moeda: {coin}\n\nPreço Atual: ' \
+                   f'{round(close_price, 2)}$\nBollinger Superior: {round(up_bollinger, 2)}\n' \
+                   f'Bollinger Inferior: {round(down_bollinger, 2)}'
 
         else:
-            message = f'Nenhuma oportunidade para a moeda: {coin}' \
-                      f'\nPreço Atual: {round(close_price, 2)}$' \
-                      f'\nBollinger Superior: {round(up_bollinger, 2)}' \
-                      f'\nBollinger Inferior: {round(down_bollinger, 2)}'
-        return message
+            return f'Nenhuma oportunidade para a moeda: {coin}\nPreço Atual: ' \
+                   f'{round(close_price, 2)}$\nBollinger Superior: {round(up_bollinger, 2)}\n' \
+                   f'Bollinger Inferior: {round(down_bollinger, 2)}'
 
-    @staticmethod
-    def plot_bollinger_bands_in_figure(bollinger_down, bollinger_up, fig, historical_prices_df):
+    def plot_bollinger_bands_in_figure(self, bollinger_down, bollinger_up, fig, historical_prices_df):
+        self.logger.info('Add Bollinger bands')
         trace_down = go.Scatter(x=historical_prices_df['time'],
                                 y=bollinger_down,
                                 showlegend=False,
@@ -103,8 +96,8 @@ class CryptoTracking:
         fig.add_trace(trace_up)
         fig.add_trace(trace_down)
 
-    @staticmethod
-    def make_candle_graph_figure(historical_prices_df):
+    def make_candle_graph_figure(self, historical_prices_df):
+        self.logger.info('Make candle graph')
         fig = go.Figure(data=[go.Candlestick(
             showlegend=False,
             x=historical_prices_df['time'],
@@ -137,6 +130,7 @@ class CryptoTracking:
             dataframe with prices by day
 
         """
+        self.logger.info(f'Get historical price from {coin}')
         historical_prices = Client(self.base_url).klines(symbol=coin, interval='1d', limit=self.chart_limit)
         columns = ['time', 'open', 'high', 'low', 'close', 'volume', 'close_time', 'quote_asset_volume',
                    'number_of_trades', 'taker_buy_base', 'taker_buy_quote', 'ignore']

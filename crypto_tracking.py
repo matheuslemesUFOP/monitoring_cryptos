@@ -1,6 +1,5 @@
 import json
-from datetime import datetime, timezone
-from typing import List
+from typing import List, Dict
 import telegram
 from binance.spot import Spot as Client
 import pandas as pd
@@ -8,11 +7,11 @@ import plotly.graph_objects as go
 import os
 
 from logger import set_logger
-from utils import get_sma, get_bollinger_bands
+from utils import get_bollinger_bands
 
 
 class CryptoTracking:
-    def __init__(self, coin_to_monitoring: List[str]):
+    def __init__(self, coin_to_monitoring: Dict):
         self.logger = set_logger()
         self.json_name = 'config_file.json'
         self.__json_info = self.get_json_config_info()
@@ -43,7 +42,7 @@ class CryptoTracking:
         self.logger.info('Initialize Crypto tracking ...')
         for coin in self.__coin_to_monitoring:
             self.logger.info(f'Monitoring {coin}')
-            historical_prices_df = self.get_coin_price_history(coin)
+            historical_prices_df = self.get_coin_price_history(self.__coin_to_monitoring[coin])
 
             fig = self.make_candle_graph_figure(historical_prices_df)
 
@@ -141,5 +140,5 @@ class CryptoTracking:
 
 
 if __name__ == '__main__':
-    coin_to_monitoring = ['ETHUSDT', 'RVNUSDT', 'BTCUSDT']
+    coin_to_monitoring = dict(Etherum='ETHUSDT', Bitcoin='BTCUSDT', Ravencoin='RVNUSDT')
     CryptoTracking(coin_to_monitoring)

@@ -1,3 +1,4 @@
+import json
 from typing import List
 import telegram
 from binance.spot import Spot as Client
@@ -7,9 +8,11 @@ import os
 
 
 class CryptoTracking:
-    def __init__(self, chat_id: str, coin_to_monitoring: List[str]):
-        self.__TOKEN = 'BINANCE TOKEN'
-        self.__CHAT_ID = chat_id
+    def __init__(self, coin_to_monitoring: List[str]):
+        self.json_name = 'config_file.json'
+        self.__json_info = self.get_json_config_info()
+        self.__TOKEN = self.__json_info['binance_token']
+        self.__CHAT_ID = self.__json_info['telegram_id']
         self.__IMAGE_PATH = "images/fig1.jpeg"
         self.__coin_to_monitoring = coin_to_monitoring
         self.bot = telegram.Bot(token=self.__TOKEN)
@@ -17,6 +20,10 @@ class CryptoTracking:
         self.base_url_test = 'https://testnet.binance.vision'
         self.chart_limit = 70
         self.crypto_tracking()
+
+    def get_json_config_info(self):
+        j = open(self.json_name)
+        return json.load(j)
 
     @staticmethod
     def get_sma(prices, rate):
@@ -140,6 +147,5 @@ class CryptoTracking:
 
 
 if __name__ == '__main__':
-    chat_id = 'YOUR TELEGRAM ID'
     coin_to_monitoring = ['ETHUSDT', 'RVNUSDT', 'BTCUSDT']
-    CryptoTracking(chat_id, coin_to_monitoring)
+    CryptoTracking(coin_to_monitoring)

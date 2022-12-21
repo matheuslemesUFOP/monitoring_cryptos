@@ -1,7 +1,7 @@
 import logging
 from datetime import datetime, timezone
 
-from utils import create_dir_if_not_exist, to_sp_timezone_without_delay, check_existing_dir
+from utils import create_dir_if_not_exist
 
 _logger = None
 _existing_loggers = []
@@ -16,7 +16,6 @@ def set_logger(name='Monitoring-Cryptos'):
     _existing_loggers.append(logger)
 
     right_now = datetime.now(timezone.utc)
-    #right_now = to_sp_timezone_without_delay(right_now)
 
     create_dir_if_not_exist('logs')
     global _logger

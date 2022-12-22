@@ -11,7 +11,7 @@ from utils import get_bollinger_bands, create_dir_if_not_exist, read_json_file_a
 
 
 class CryptoTracking:
-    def __init__(self, coin_to_monitoring: Dict):
+    def __init__(self, coin_to_monitoring: Dict, debug_mode:bool):
         self.logger = set_logger()
         self.json_name = 'config_file.json'
         self.__json_info = self.get_json_config_info()
@@ -23,6 +23,7 @@ class CryptoTracking:
         self.base_url = 'https://api.binance.com'
         self.base_url_test = 'https://testnet.binance.vision'
         self.chart_limit = 70
+        self.debug_mode = debug_mode
         self.crypto_tracking()
 
     def get_json_config_info(self):
@@ -38,7 +39,7 @@ class CryptoTracking:
             os.remove(self.__IMAGE_PATH)
 
     def crypto_tracking(self):
-        self.logger.info('Initialize Crypto tracking ...')
+        self.initialize_crypto_tracking()
         for coin in self.__coin_to_monitoring:
             self.logger.info(f'Monitoring {coin}')
             historical_prices_df = self.get_coin_price_history(self.__coin_to_monitoring[coin])
@@ -61,7 +62,13 @@ class CryptoTracking:
 
             create_dir_if_not_exist('images')
             fig.write_image(self.__IMAGE_PATH)
-            self.send_message_in_telegram(message=coin_message + message, send_image=True)
+            if not self.debug_mode:
+                self.send_message_in_telegram(message=coin_message + message, send_image=True)
+
+    def initialize_crypto_tracking(self):
+        if self.debug_mode:
+            self.logger.info('Initialize Crypto tracking on DEBUG MODE: not send messsages in telegram')
+        self.logger.info('Initialize Crypto tracking ...')
 
     def evaluate_price_to_send_message(self, close_price, coin, down_bollinger, up_bollinger):
         self.logger.info('Evaluate price')
@@ -138,5 +145,5 @@ class CryptoTracking:
 
 
 if __name__ == '__main__':
-    coin_to_monitoring = dict(Etherum='ETHUSDT', Bitcoin='BTCUSDT', Ravencoin='RVNUSDT')
-    CryptoTracking(coin_to_monitoring)
+    coin_to_monitoring = dict(Ethereum='ETHUSDT', Bitcoin='BTCUSDT', Ravencoin='RVNUSDT')
+    CryptoTracking(coin_to_monitoring=coin_to_monitoring, debug_mode=False)

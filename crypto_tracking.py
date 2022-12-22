@@ -1,5 +1,5 @@
 import json
-from typing import List, Dict
+from typing import Dict
 import telegram
 from binance.spot import Spot as Client
 import pandas as pd
@@ -7,7 +7,7 @@ import plotly.graph_objects as go
 import os
 
 from logger import set_logger
-from utils import get_bollinger_bands
+from utils import get_bollinger_bands, create_dir_if_not_exist
 
 
 class CryptoTracking:
@@ -60,8 +60,7 @@ class CryptoTracking:
             coin_message = f'==================== {coin} ==================== \n'
             message = self.evaluate_price_to_send_message(close_price, coin, down_bollinger, up_bollinger)
 
-            if not os.path.exists("images"):
-                os.mkdir("images")
+            create_dir_if_not_exist('images')
             fig.write_image(self.__IMAGE_PATH)
             self.send_message_in_telegram(message=coin_message + message, send_image=True)
 

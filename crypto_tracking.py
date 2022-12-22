@@ -1,4 +1,3 @@
-import json
 from typing import Dict
 import telegram
 from binance.spot import Spot as Client
@@ -11,7 +10,7 @@ from utils import get_bollinger_bands, create_dir_if_not_exist, read_json_file_a
 
 
 class CryptoTracking:
-    def __init__(self, coin_to_monitoring: Dict, debug_mode:bool):
+    def __init__(self, coin_to_monitoring: Dict, debug_mode: bool):
         self.logger = set_logger()
         self.json_name = 'config_file.json'
         self.__json_info = self.get_json_config_info()

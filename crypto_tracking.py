@@ -7,7 +7,7 @@ import plotly.graph_objects as go
 import os
 
 from logger import set_logger
-from utils import get_bollinger_bands, create_dir_if_not_exist
+from utils import get_bollinger_bands, create_dir_if_not_exist, read_json_file_as_dict
 
 
 class CryptoTracking:
@@ -26,8 +26,7 @@ class CryptoTracking:
         self.crypto_tracking()
 
     def get_json_config_info(self):
-        j = open(self.json_name)
-        return json.load(j)
+        return read_json_file_as_dict(self.json_name)
 
     def send_message_in_telegram(self, message: str, send_image: bool):
         self.logger.info('Send telegram message')

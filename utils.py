@@ -1,3 +1,4 @@
+import json
 import os
 from datetime import datetime
 
@@ -31,3 +32,8 @@ def get_bollinger_bands(prices, rate=5):
     bollinger_up = sma + std * 2  # Calculate top band
     bollinger_down = sma - std * 2  # Calculate bottom band
     return bollinger_up, bollinger_down
+
+
+def read_json_file_as_dict(json_name: str):
+    j = open(json_name)
+    return json.load(j)
